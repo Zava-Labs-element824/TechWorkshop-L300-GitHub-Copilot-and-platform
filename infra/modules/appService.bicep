@@ -22,6 +22,16 @@ param appInsightsConnectionString string
 @description('Application Insights Instrumentation Key')
 param appInsightsInstrumentationKey string
 
+@description('Azure OpenAI Endpoint')
+param azureOpenAIEndpoint string = ''
+
+@description('Azure OpenAI Deployment Name')
+param azureOpenAIDeploymentName string = ''
+
+@secure()
+@description('Azure OpenAI API Key')
+param azureOpenAIApiKey string = ''
+
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
   name: containerRegistryName
 }
@@ -67,6 +77,18 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
         {
           name: 'ASPNETCORE_ENVIRONMENT'
           value: 'Production'
+        }
+        {
+          name: 'AZURE_OPENAI_ENDPOINT'
+          value: azureOpenAIEndpoint
+        }
+        {
+          name: 'AZURE_OPENAI_DEPLOYMENT_NAME'
+          value: azureOpenAIDeploymentName
+        }
+        {
+          name: 'AZURE_OPENAI_API_KEY'
+          value: azureOpenAIApiKey
         }
       ]
     }
