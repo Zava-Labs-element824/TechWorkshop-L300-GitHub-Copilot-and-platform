@@ -7,4 +7,9 @@
     <UserSecretsId>23186958-7a6b-49de-8911-d3c3dc8cb657</UserSecretsId>
   </PropertyGroup>
 
+<ItemGroup>
+   <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
+   <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+ </ItemGroup>
+
 </Project>
