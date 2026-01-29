@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Chat";
+}
+
+<div class="container mt-4">
+    <h2><i class="bi bi-chat-dots"></i> Zava Assistant</h2>
+    <p class="text-muted">Ask me anything about our products and services!</p>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div id="chatMessages" class="chat-messages border rounded p-3 mb-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+                        <div class="text-center text-muted">
+                            <p>Welcome! How can I help you today?</p>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" id="userMessage" class="form-control" placeholder="Type your message here..." />
+                        <button id="sendButton" class="btn btn-primary" type="button">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightbulb"></i> Suggestions
+                </div>
+                <div class="card-body">
+                    <p class="small">Try asking:</p>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <a href="#" class="suggestion-link">What products do you have?</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="suggestion-link">Tell me about your headphones</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="suggestion-link">What's your return policy?</a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="suggestion-link">Do you have any deals?</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-messages .message {
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 10px;
+        max-width: 80%;
+    }
+
+    .chat-messages .user-message {
+        background-color: #007bff;
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .chat-messages .assistant-message {
+        background-color: white;
+        border: 1px solid #dee2e6;
+    }
+
+    .chat-messages .message-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-messages .message-wrapper.user {
+        align-items: flex-end;
+    }
+
+    .chat-messages .message-wrapper.assistant {
+        align-items: flex-start;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 5px;
+        padding: 10px;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        animation: typing 1s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes typing {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 1; }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            const chatMessages = $('#chatMessages');
+            const userMessageInput = $('#userMessage');
+            const sendButton = $('#sendButton');
+
+            function addMessage(content, isUser) {
+                const wrapper = $('<div class="message-wrapper"></div>');
+                wrapper.addClass(isUser ? 'user' : 'assistant');
+
+                const message = $('<div class="message"></div>');
+                message.addClass(isUser ? 'user-message' : 'assistant-message');
+                message.text(content);
+
+                wrapper.append(message);
+                chatMessages.append(wrapper);
+                chatMessages.scrollTop(chatMessages[0].scrollHeight);
+            }
+
+            function showTypingIndicator() {
+                const indicator = $('<div id="typingIndicator" class="message-wrapper assistant"><div class="message assistant-message typing-indicator"><span></span><span></span><span></span></div></div>');
+                chatMessages.append(indicator);
+                chatMessages.scrollTop(chatMessages[0].scrollHeight);
+            }
+
+            function hideTypingIndicator() {
+                $('#typingIndicator').remove();
+            }
+
+            async function sendMessage() {
+                const message = userMessageInput.val().trim();
+                if (!message) return;
+
+                addMessage(message, true);
+                userMessageInput.val('');
+                sendButton.prop('disabled', true);
+
+                showTypingIndicator();
+
+                try {
+                    const response = await fetch('/Chat/SendMessage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    if (data.success) {
+                        addMessage(data.response, false);
+                    } else {
+                        addMessage('Sorry, ' + (data.error || 'an error occurred'), false);
+                    }
+                } catch (error) {
+                    hideTypingIndicator();
+                    addMessage('Sorry, there was an error connecting to the chat service.', false);
+                } finally {
+                    sendButton.prop('disabled', false);
+                    userMessageInput.focus();
+                }
+            }
+
+            sendButton.click(sendMessage);
+
+            userMessageInput.keypress(function(e) {
+                if (e.which === 13) {
+                    sendMessage();
+                }
+            });
+
+            $('.suggestion-link').click(function(e) {
+                e.preventDefault();
+                userMessageInput.val($(this).text());
+                sendMessage();
+            });
+        });
+    </script>
+}

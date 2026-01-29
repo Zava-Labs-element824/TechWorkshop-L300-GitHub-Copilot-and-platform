@@ -31,6 +31,9 @@ TestResults/
 *.vspscc
 *.vssscc
 
+# Development settings with secrets
+appsettings.Development.json
+
 # Rider
 .idea/
 *.sln.iml
